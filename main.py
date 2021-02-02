@@ -46,4 +46,5 @@ async def on_message(message):
         else:
             await message.channel.send("Heil hydra (couldn't find gifs soz).")
 discord_key = os.getenv("DISCORD_TOKEN")
+keep_alive()
 client.run(discord_key)
