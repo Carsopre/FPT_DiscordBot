@@ -1,6 +1,6 @@
 from keep_alive import keep_alive
 from typing import Optional, List
-from pydatinc import BaseClass as DataClass
+from pydantic import BaseModel as DataClass
 import discord
 import datetime
 import os
