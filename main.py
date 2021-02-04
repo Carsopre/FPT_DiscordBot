@@ -16,7 +16,7 @@ discord_key = os.getenv("DISCORD_TOKEN")
 
 
 class SpamUser(DataClass):
-    discriminator: int
+    discriminator: str
     search_terms: List[str]
     last_mssg: Optional[datetime.datetime]
 
