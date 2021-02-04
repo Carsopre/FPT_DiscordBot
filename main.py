@@ -53,7 +53,12 @@ def find_gif(search_term: str) -> str:
     return ""
 
 
-async def time_to_spam(message):
+@client.event
+async def on_ready():
+    print("We have logged in as {0.user}".format(client))
+
+
+async def on_time_to_spam(message):
     spam_users: List[SpamUser] = [gabri_spam, tim_spam]
     user_to_spam = next(
         (
@@ -80,9 +85,16 @@ async def time_to_spam(message):
         user_to_spam.last_mssg = now_time
 
 
-@client.event
-async def on_ready():
-    print("We have logged in as {0.user}".format(client))
+async def on_reply_to_filter_mssg(message, filter_mssgs: List[str], find_str: str):
+    mssg_contnt = message.content.lower()
+    if any(mssg in mssg_contnt for mssg in filter_mssgs):
+        gif = find_gif(find_str)
+        if gif:
+            await message.channel.send(gif)
+        else:
+            await message.channel.send(
+                f"{find_str.capitalize()}! (Couldn't find gifs soz)."
+            )
 
 
 @client.event
@@ -91,24 +103,34 @@ async def on_message(message):
         # Avoid infinite loop!
         return
     mssg_chn = message.channel
-    if mssg_chn.category.name == "FPT INTERNAL" and mssg_chn.name == "general":
-        time_to_spam(message)
+    if (
+        mssg_chn.category.name.lower() == "fpt internal"
+        and mssg_chn.name.lower() == "general"
+    ):
+        await on_time_to_spam(message)
 
-    messages_to_filter = [
-        "hail hydra",
-        "heil hydra",
-        "dhydro",
-        "dhydra",
-        "d-hydro",
-        "d-hydra",
-    ]
-    mssg_contnt = message.content.lower()
-    if any(mssg in mssg_contnt for mssg in messages_to_filter):
-        gif = find_gif("hail-hydra")
-        if gif:
-            await mssg_chn.send(gif)
-        else:
-            await mssg_chn.send("Heil hydra (couldn't find gifs soz).")
+    await on_reply_to_filter_mssg(
+        message,
+        [
+            "hail hydra",
+            "heil hydra",
+            "dhydro",
+            "dhydra",
+            "d-hydro",
+            "d-hydra",
+        ],
+        "hail-hydra",
+    )
+    await on_reply_to_filter_mssg(
+        message,
+        [
+            "good morning",
+            "goodmorning",
+            "goedemorgen",
+            "buon giorno",
+        ],
+        "good morning",
+    )
 
 
 keep_alive()
