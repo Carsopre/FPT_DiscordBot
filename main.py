@@ -75,8 +75,8 @@ async def on_time_to_spam(message):
     if not user_to_spam.last_mssg or (
         now_time - user_to_spam.last_mssg > datetime.timedelta(minutes=60)
     ):
-        search_idx = random.randint(0, len(user_to_spam.search_items) - 1)
-        gif = find_gif(user_to_spam.search_items[search_idx])
+        search_idx = random.randint(0, len(user_to_spam.search_terms) - 1)
+        gif = find_gif(user_to_spam.search_terms[search_idx])
         default_mssg = f"Ey {message.author.mention} bring me coffee."
         await message.channel.send(default_mssg)
         if gif:
