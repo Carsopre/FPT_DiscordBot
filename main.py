@@ -65,7 +65,7 @@ async def on_ready():
 
 
 async def on_time_to_spam(message):
-    spam_users: List[SpamUser] = [gabri_spam, tim_spam]
+    spam_users: List[SpamUser] = [gabri_spam, tim_spam, dennis_spam]
     user_to_spam = next(
         (
             spam_user
