@@ -36,7 +36,7 @@ tim_spam = SpamUser(
 dennis_spam = SpamUser(
     **{
         "discriminator": os.getenv("dennis_discriminator"),
-        "search_terms": ["hell-kitty", "unicorn", "dungeon", "spending-money"],
+        "search_terms": ["hello-kitty", "unicorn", "dungeon", "spending-money"],
     }
 )
 
