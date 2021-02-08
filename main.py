@@ -33,6 +33,12 @@ tim_spam = SpamUser(
         "search_terms": ["dance", "fresh-prince", "he-man", "mary-poppins"],
     }
 )
+dennis_spam = SpamUser(
+    **{
+        "discriminator": os.getenv("dennis_discriminator"),
+        "search_terms": ["hell-kitty", "unicorn", "dungeon", "spending-money"],
+    }
+)
 
 
 def find_gif(search_term: str) -> str:
