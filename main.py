@@ -36,7 +36,7 @@ tim_spam = SpamUser(
 dennis_spam = SpamUser(
     **{
         "discriminator": os.getenv("dennis_discriminator"),
-        "search_terms": ["hello-kitty", "unicorn", "dungeon", "spending-money"],
+        "search_terms": ["matrix", "unicorn", "dungeon", "spending-money"],
     }
 )
 
@@ -66,6 +66,9 @@ async def on_ready():
 
 async def on_time_to_spam(message):
     spam_users: List[SpamUser] = [gabri_spam, tim_spam, dennis_spam]
+    last_time = max(
+        last_mssg for spam_user.last_mssg in spam_users if spam_user.last_mssg
+    )
     user_to_spam = next(
         (
             spam_user
@@ -78,9 +81,7 @@ async def on_time_to_spam(message):
         return
 
     now_time: datetime.datetime = datetime.datetime.now()
-    if not user_to_spam.last_mssg or (
-        now_time - user_to_spam.last_mssg > datetime.timedelta(minutes=60)
-    ):
+    if last_time > datetime.timedelta(minutes=60):
         search_idx = random.randint(0, len(user_to_spam.search_terms) - 1)
         gif = find_gif(user_to_spam.search_terms[search_idx])
         default_mssg = f"Ey {message.author.mention} bring me coffee."
