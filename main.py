@@ -81,7 +81,7 @@ async def on_time_to_spam(message):
         return
 
     now_time: datetime.datetime = datetime.datetime.now()
-    if last_time > datetime.timedelta(minutes=60):
+    if not last_time or last_time > datetime.timedelta(minutes=60):
         search_idx = random.randint(0, len(user_to_spam.search_terms) - 1)
         gif = find_gif(user_to_spam.search_terms[search_idx])
         default_mssg = f"Ey {message.author.mention} bring me coffee."
