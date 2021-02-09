@@ -21,22 +21,26 @@ class SpamUser(DataClass):
     last_mssg: Optional[datetime.datetime]
 
 
+default_starttime = datetime.datetime(2021, 1, 1)
 gabri_spam = SpamUser(
     **{
         "discriminator": os.getenv("gabri_discriminator"),
         "search_terms": ["coffee", "spaghetti", "pasta", "pineapple pizza"],
+        "last_mssg": default_starttime,
     }
 )
 tim_spam = SpamUser(
     **{
         "discriminator": os.getenv("tim_discriminator"),
         "search_terms": ["dance", "fresh-prince", "he-man", "mary-poppins"],
+        "last_mssg": default_starttime,
     }
 )
 dennis_spam = SpamUser(
     **{
         "discriminator": os.getenv("dennis_discriminator"),
         "search_terms": ["matrix", "unicorn", "dungeon", "spending-money"],
+        "last_mssg": default_starttime,
     }
 )
 
@@ -66,9 +70,7 @@ async def on_ready():
 
 async def on_time_to_spam(message):
     spam_users: List[SpamUser] = [gabri_spam, tim_spam, dennis_spam]
-    last_time = max(
-        last_mssg for spam_user.last_mssg in spam_users if spam_user.last_mssg
-    )
+    last_time = max(spam_user.last_mssg for spam_user in spam_users)
     user_to_spam = next(
         (
             spam_user
@@ -81,7 +83,7 @@ async def on_time_to_spam(message):
         return
 
     now_time: datetime.datetime = datetime.datetime.now()
-    if not last_time or last_time > datetime.timedelta(minutes=60):
+    if (now_time - last_time) > datetime.timedelta(minutes=60):
         search_idx = random.randint(0, len(user_to_spam.search_terms) - 1)
         gif = find_gif(user_to_spam.search_terms[search_idx])
         default_mssg = f"Ey {message.author.mention} bring me coffee."
