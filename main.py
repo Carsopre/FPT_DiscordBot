@@ -43,6 +43,20 @@ dennis_spam = SpamUser(
         "last_mssg": default_starttime,
     }
 )
+maarten_spam = SpamUser(
+    **{
+        "discriminator": os.getenv("maarten_discriminator"),
+        "search_terms": ["matrix", "frog", "breakingbad", "dexters laboratory"],
+        "last_mssg": default_starttime,
+    }
+)
+prisca_spam = SpamUser(
+    **{
+        "discriminator": os.getenv("prisca_discriminator"),
+        "search_terms": ["matrix",],
+        "last_mssg": default_starttime,
+    }
+)
 
 
 def find_gif(search_term: str) -> str:
@@ -120,24 +134,12 @@ async def on_message(message):
 
     await on_reply_to_filter_mssg(
         message,
-        [
-            "hail hydra",
-            "heil hydra",
-            "dhydro",
-            "dhydra",
-            "d-hydro",
-            "d-hydra",
-        ],
+        ["hail hydra", "heil hydra", "dhydro", "dhydra", "d-hydro", "d-hydra",],
         "hail-hydra",
     )
     await on_reply_to_filter_mssg(
         message,
-        [
-            "good morning",
-            "goodmorning",
-            "goedemorgen",
-            "buon giorno",
-        ],
+        ["good morning", "goodmorning", "goedemorgen", "buon giorno",],
         "good morning",
     )
 
