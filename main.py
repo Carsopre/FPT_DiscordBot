@@ -1,5 +1,6 @@
+from pydantic.errors import DataclassTypeError
 from keep_alive import keep_alive
-from typing import Optional, List
+from typing import Optional, List, Dict
 from pydantic import BaseModel as DataClass
 import discord
 import datetime
@@ -22,6 +23,9 @@ class SpamUser(DataClass):
 
 
 default_starttime = datetime.datetime(2021, 1, 1)
+default_goodboy_until = datetime.timedelta(seconds=300) # 5 minutes of silence in this channel
+muted_channels: Dict[str, datetime.datetime] = []
+
 gabri_spam = SpamUser(
     **{
         "discriminator": os.getenv("gabri_discriminator"),
@@ -131,6 +135,25 @@ async def on_message(message):
         and mssg_chn.name.lower() == "general"
     ):
         await on_time_to_spam(message)
+    
+    def mute_until() -> datetime.datetime:
+        return datetime.datetime.now() + default_goodboy_until
+
+    if(message.content.lower() == "/badbot"):
+        muted_channels[mssg_chn] = mute_until()
+        await message.channel.send("Sorry, I'll be a good bot for a while :cry: :innocent:")
+        return
+    if(message.content.lower() == "/goodbot"):
+        muted_channels.pop(message.channel, None) # Remove from list if it was muted.
+        await message.channel.send("Thank you good lord.")
+        return
+    mc = muted_channels.get(message.channel, None)
+    if mc and mc > datetime.datetime.now():
+        # Channel is still muted.
+        return
+    elif mc and mc <= datetime.datetime.now():
+        await message.channel.send("I was a good boy for a while now.")
+        muted_channels.pop(message.channel)
 
     await on_reply_to_filter_mssg(
         message,
