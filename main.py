@@ -24,7 +24,7 @@ class SpamUser(DataClass):
 
 default_starttime = datetime.datetime(2021, 1, 1)
 default_goodboy_until = datetime.timedelta(seconds=300) # 5 minutes of silence in this channel
-muted_channels: Dict[str, datetime.datetime] = []
+muted_channels: Dict[str, datetime.datetime] = {}
 
 gabri_spam = SpamUser(
     **{
