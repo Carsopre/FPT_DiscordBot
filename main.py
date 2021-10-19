@@ -23,7 +23,9 @@ class SpamUser(DataClass):
 
 
 default_starttime = datetime.datetime(2021, 1, 1)
-default_goodboy_until = datetime.timedelta(seconds=300) # 5 minutes of silence in this channel
+default_goodboy_until = datetime.timedelta(
+    seconds=300
+)  # 5 minutes of silence in this channel
 muted_channels: Dict[str, datetime.datetime] = {}
 
 gabri_spam = SpamUser(
@@ -62,6 +64,14 @@ prisca_spam = SpamUser(
     }
 )
 
+robin_spam = SpamUser(
+    **{
+        "discriminator": os.getenv("prisca_discriminator"),
+        "search_terms": ["baby", "newbie", "spongebob", "matrix"],
+        "last_mssg": default_starttime,
+    }
+)
+
 
 def find_gif(search_term: str) -> str:
     # set the apikey and limit
@@ -87,7 +97,14 @@ async def on_ready():
 
 
 async def on_time_to_spam(message):
-    spam_users: List[SpamUser] = [gabri_spam, tim_spam, dennis_spam]
+    spam_users: List[SpamUser] = [
+        gabri_spam,
+        tim_spam,
+        dennis_spam,
+        maarten_spam,
+        prisca_spam,
+        robin_spam,
+    ]
     last_time = max(spam_user.last_mssg for spam_user in spam_users)
     user_to_spam = next(
         (
@@ -135,16 +152,18 @@ async def on_message(message):
         and mssg_chn.name.lower() == "general"
     ):
         await on_time_to_spam(message)
-    
+
     def mute_until() -> datetime.datetime:
         return datetime.datetime.now() + default_goodboy_until
 
-    if(message.content.lower() == "/badbot"):
+    if message.content.lower() == "/badbot":
         muted_channels[mssg_chn] = mute_until()
-        await message.channel.send("Sorry, I'll be a good bot for a while :cry: :innocent:")
+        await message.channel.send(
+            "Sorry, I'll be a good bot for a while :cry: :innocent:"
+        )
         return
-    if(message.content.lower() == "/goodbot"):
-        muted_channels.pop(message.channel, None) # Remove from list if it was muted.
+    if message.content.lower() == "/goodbot":
+        muted_channels.pop(message.channel, None)  # Remove from list if it was muted.
         await message.channel.send("Thank you good lord.")
         return
     mc = muted_channels.get(message.channel, None)
