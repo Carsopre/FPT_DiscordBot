@@ -38,7 +38,7 @@ gabri_spam = SpamUser(
 tim_spam = SpamUser(
     **{
         "discriminator": os.getenv("tim_discriminator"),
-        "search_terms": ["dance", "fresh-prince", "he-man", "mary-poppins"],
+        "search_terms": ["god", "fresh-prince", "he-man", "all-mighty"],
         "last_mssg": default_starttime,
     }
 )
@@ -66,7 +66,7 @@ prisca_spam = SpamUser(
 
 robin_spam = SpamUser(
     **{
-        "discriminator": os.getenv("prisca_discriminator"),
+        "discriminator": os.getenv("robin_discriminator"),
         "search_terms": ["baby", "newbie", "spongebob", "matrix"],
         "last_mssg": default_starttime,
     }
