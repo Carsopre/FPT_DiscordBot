@@ -1,6 +1,6 @@
 from pydantic.errors import DataclassTypeError
 from keep_alive import keep_alive
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Union
 from pydantic import BaseModel as DataClass
 import discord
 import datetime
@@ -17,9 +17,32 @@ discord_key = os.getenv("DISCORD_TOKEN")
 
 
 class SpamUser(DataClass):
+    user_name: str
     discriminator: str
     search_terms: List[str]
     last_mssg: Optional[datetime.datetime]
+
+
+class UsersToSpam(DataClass):
+    users: List[SpamUser]
+
+    def get_user_by_discriminator(discriminator: str) -> Union[SpamUser, None]:
+        """Retrieves the user whose discriminator matches the one given.
+
+        Args:
+            discriminator (str): Discriminator to be found.
+
+        Returns:
+            Union[SpamUser, None]: Associated user to the discriminator or None if not found.
+        """
+        return next(
+            (
+                spam_user
+                for spam_user in users_to_spam.users
+                if spam_user.discriminator == discriminator
+            ),
+            None,
+        )
 
 
 default_starttime = datetime.datetime(2021, 1, 1)
@@ -29,7 +52,7 @@ default_goodboy_until = datetime.timedelta(
 muted_channels: Dict[str, datetime.datetime] = {}
 
 
-def users_to_spam() -> List[SpamUser]:
+def get_users_to_spam() -> List[SpamUser]:
     """Retrieves the list of users that will be spammed.
 
     Returns:
@@ -38,6 +61,7 @@ def users_to_spam() -> List[SpamUser]:
 
     def get_spam_user(name: str, terms: List[str]) -> SpamUser:
         return SpamUser(
+            user_name=name,
             discriminator=os.getenv(f"{name}_discriminator"),
             search_terms=terms,
             last_mssg=default_starttime,
@@ -53,6 +77,9 @@ def users_to_spam() -> List[SpamUser]:
         get_spam_user("prisca", ["cat", "matrix"]),
         get_spam_user("robin", ["baby", "fire", "spongebob", "matrix"]),
     ]
+
+
+users_to_spam = UsersToSpam(users=get_users_to_spam())
 
 
 def find_gif(search_term: str) -> str:
@@ -79,29 +106,26 @@ async def on_ready():
 
 
 async def on_time_to_spam(message):
-    spam_users = users_to_spam()
-    last_time = max(spam_user.last_mssg for spam_user in spam_users)
-    user_to_spam = next(
-        (
-            spam_user
-            for spam_user in spam_users
-            if spam_user.discriminator == message.author.discriminator
-        ),
-        None,
+    last_time = max(spam_user.last_mssg for spam_user in users_to_spam.users)
+    user_to_spam: SpamUser = users_to_spam.get_user_by_discriminator(
+        message.author.discriminator
     )
-    if not user_to_spam:
+    if user_to_spam is None:
+        print(
+            f"No user found to spam with discriminator {message.author.discriminator}"
+        )
         return
 
-    now_time: datetime.datetime = datetime.datetime.now()
+    now_time = datetime.datetime.now()
     if (now_time - last_time) > datetime.timedelta(minutes=60):
         search_idx = random.randint(0, len(user_to_spam.search_terms) - 1)
         gif = find_gif(user_to_spam.search_terms[search_idx])
         default_mssg = f"Ey {message.author.mention} bring me coffee."
+        # Update timestamp.
+        user_to_spam.last_mssg = now_time
         await message.channel.send(default_mssg)
         if gif:
             await message.channel.send(gif)
-        # Update timestamp.
-        user_to_spam.last_mssg = now_time
 
 
 async def on_reply_to_filter_mssg(message, filter_mssgs: List[str], find_str: str):
@@ -118,6 +142,10 @@ async def on_reply_to_filter_mssg(message, filter_mssgs: List[str], find_str: st
 
 @client.event
 async def on_message(message):
+
+    mute_keywords = ["/badbot", "/badboy", "/mutebot"]
+    unmute_keywords = ["/goodbot", "/goodboy", "/unmutebot"]
+
     if message.author == client.user:
         # Avoid infinite loop!
         return
@@ -131,23 +159,25 @@ async def on_message(message):
     def mute_until() -> datetime.datetime:
         return datetime.datetime.now() + default_goodboy_until
 
-    if message.content.lower() == "/badbot":
+    if message.content.lower() in mute_keywords:
         muted_channels[mssg_chn] = mute_until()
         await message.channel.send(
             "Sorry, I'll be a good bot for a while :cry: :innocent:"
         )
         return
-    if message.content.lower() == "/goodbot":
+    if message.content.lower() in unmute_keywords:
         muted_channels.pop(message.channel, None)  # Remove from list if it was muted.
         await message.channel.send("Thank you good lord.")
         return
+
     mc = muted_channels.get(message.channel, None)
-    if mc and mc > datetime.datetime.now():
-        # Channel is still muted.
-        return
-    elif mc and mc <= datetime.datetime.now():
-        await message.channel.send("I was a good boy for a while now.")
-        muted_channels.pop(message.channel)
+    if mc is not None:
+        if mc > datetime.datetime.now():
+            # Channel is still muted.
+            return
+        elif mc <= datetime.datetime.now():
+            await message.channel.send("I was a good boy for a while now.")
+            muted_channels.pop(message.channel)
 
     await on_reply_to_filter_mssg(
         message,
