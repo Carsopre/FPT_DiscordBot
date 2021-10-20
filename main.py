@@ -26,7 +26,7 @@ class SpamUser(DataClass):
 class UsersToSpam(DataClass):
     users: List[SpamUser]
 
-    def get_user_by_discriminator(discriminator: str) -> Union[SpamUser, None]:
+    def get_user_by_discriminator(self, discriminator: str) -> Union[SpamUser, None]:
         """Retrieves the user whose discriminator matches the one given.
 
         Args:
