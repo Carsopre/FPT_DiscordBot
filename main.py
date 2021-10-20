@@ -15,15 +15,14 @@ import requests
 client = discord.Client()
 discord_key = os.getenv("DISCORD_TOKEN")
 
-default_starttime = datetime.datetime(2021, 1, 1)
-
 
 class SpamUser(DataClass):
     discriminator: str
     search_terms: List[str]
-    last_mssg: datetime.datetime = default_starttime
+    last_mssg: Optional[datetime.datetime]
 
 
+default_starttime = datetime.datetime(2021, 1, 1)
 default_goodboy_until = datetime.timedelta(
     seconds=300
 )  # 5 minutes of silence in this channel
@@ -36,30 +35,24 @@ def users_to_spam() -> List[SpamUser]:
     Returns:
         List[SpamUser]: List of users that can be spammed.
     """
-    gabri_spam = SpamUser(
-        discriminator=os.getenv("gabri_discriminator"),
-        search_terms=["coffee", "spaghetti", "pasta", "pineapple pizza"],
-    )
-    tim_spam = SpamUser(
-        discriminator=os.getenv("tim_discriminator"),
-        search_terms=["god", "fresh-prince", "he-man", "all-mighty"],
-    )
-    dennis_spam = SpamUser(
-        discriminator=os.getenv("dennis_discriminator"),
-        search_terms=["matrix", "unicorn", "dungeon", "spending-money"],
-    )
-    maarten_spam = SpamUser(
-        discriminator=os.getenv("maarten_discriminator"),
-        search_terms=["matrix", "frog", "breakingbad", "dexters laboratory"],
-    )
-    prisca_spam = SpamUser(
-        discriminator=os.getenv("prisca_discriminator"), search_terms=["cat", "matrix"],
-    )
-    robin_spam = SpamUser(
-        discriminator=os.getenv("robin_discriminator"),
-        search_terms=["baby", "fire", "spongebob", "matrix"],
-    )
-    return [gabri_spam, tim_spam, dennis_spam, maarten_spam, prisca_spam, robin_spam]
+
+    def get_spam_user(name: str, terms: List[str]) -> SpamUser:
+        return SpamUser(
+            discriminator=os.getenv(f"{name}_discriminator"),
+            search_terms=terms,
+            last_mssg=default_starttime,
+        )
+
+    return [
+        get_spam_user("gabri", ["coffee", "spaghetti", "pasta", "pineapple pizza"]),
+        get_spam_user("tim", ["god", "fresh-prince", "he-man", "all-mighty"]),
+        get_spam_user("dennis", ["matrix", "unicorn", "dungeon", "spending-money"]),
+        get_spam_user(
+            "maarten", ["matrix", "frog", "breakingbad", "dexters laboratory"]
+        ),
+        get_spam_user("prisca", ["cat", "matrix"]),
+        get_spam_user("robin", ["baby", "fire", "spongebob", "matrix"]),
+    ]
 
 
 def find_gif(search_term: str) -> str:
