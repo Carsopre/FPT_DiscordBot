@@ -150,6 +150,9 @@ async def on_message(message):
         # Avoid infinite loop!
         return
     mssg_chn = message.channel
+    if isinstance(mssg_chn, discord.DMChannel):
+        # Don't talk to strangers :(
+        return
     if (
         mssg_chn.category.name.lower() == "fpt internal"
         and mssg_chn.name.lower() == "general"
