@@ -15,62 +15,51 @@ import requests
 client = discord.Client()
 discord_key = os.getenv("DISCORD_TOKEN")
 
+default_starttime = datetime.datetime(2021, 1, 1)
+
 
 class SpamUser(DataClass):
     discriminator: str
     search_terms: List[str]
-    last_mssg: Optional[datetime.datetime]
+    last_mssg: datetime.datetime = default_starttime
 
 
-default_starttime = datetime.datetime(2021, 1, 1)
 default_goodboy_until = datetime.timedelta(
     seconds=300
 )  # 5 minutes of silence in this channel
 muted_channels: Dict[str, datetime.datetime] = {}
 
-gabri_spam = SpamUser(
-    **{
-        "discriminator": os.getenv("gabri_discriminator"),
-        "search_terms": ["coffee", "spaghetti", "pasta", "pineapple pizza"],
-        "last_mssg": default_starttime,
-    }
-)
-tim_spam = SpamUser(
-    **{
-        "discriminator": os.getenv("tim_discriminator"),
-        "search_terms": ["god", "fresh-prince", "he-man", "all-mighty"],
-        "last_mssg": default_starttime,
-    }
-)
-dennis_spam = SpamUser(
-    **{
-        "discriminator": os.getenv("dennis_discriminator"),
-        "search_terms": ["matrix", "unicorn", "dungeon", "spending-money"],
-        "last_mssg": default_starttime,
-    }
-)
-maarten_spam = SpamUser(
-    **{
-        "discriminator": os.getenv("maarten_discriminator"),
-        "search_terms": ["matrix", "frog", "breakingbad", "dexters laboratory"],
-        "last_mssg": default_starttime,
-    }
-)
-prisca_spam = SpamUser(
-    **{
-        "discriminator": os.getenv("prisca_discriminator"),
-        "search_terms": ["matrix",],
-        "last_mssg": default_starttime,
-    }
-)
 
-robin_spam = SpamUser(
-    **{
-        "discriminator": os.getenv("robin_discriminator"),
-        "search_terms": ["baby", "newbie", "spongebob", "matrix"],
-        "last_mssg": default_starttime,
-    }
-)
+def users_to_spam() -> List[SpamUser]:
+    """Retrieves the list of users that will be spammed.
+
+    Returns:
+        List[SpamUser]: List of users that can be spammed.
+    """
+    gabri_spam = SpamUser(
+        discriminator=os.getenv("gabri_discriminator"),
+        search_terms=["coffee", "spaghetti", "pasta", "pineapple pizza"],
+    )
+    tim_spam = SpamUser(
+        discriminator=os.getenv("tim_discriminator"),
+        search_terms=["god", "fresh-prince", "he-man", "all-mighty"],
+    )
+    dennis_spam = SpamUser(
+        discriminator=os.getenv("dennis_discriminator"),
+        search_terms=["matrix", "unicorn", "dungeon", "spending-money"],
+    )
+    maarten_spam = SpamUser(
+        discriminator=os.getenv("maarten_discriminator"),
+        search_terms=["matrix", "frog", "breakingbad", "dexters laboratory"],
+    )
+    prisca_spam = SpamUser(
+        discriminator=os.getenv("prisca_discriminator"), search_terms=["cat", "matrix"],
+    )
+    robin_spam = SpamUser(
+        discriminator=os.getenv("robin_discriminator"),
+        search_terms=["baby", "fire", "spongebob", "matrix"],
+    )
+    return [gabri_spam, tim_spam, dennis_spam, maarten_spam, prisca_spam, robin_spam]
 
 
 def find_gif(search_term: str) -> str:
@@ -97,14 +86,7 @@ async def on_ready():
 
 
 async def on_time_to_spam(message):
-    spam_users: List[SpamUser] = [
-        gabri_spam,
-        tim_spam,
-        dennis_spam,
-        maarten_spam,
-        prisca_spam,
-        robin_spam,
-    ]
+    spam_users = users_to_spam()
     last_time = max(spam_user.last_mssg for spam_user in spam_users)
     user_to_spam = next(
         (
